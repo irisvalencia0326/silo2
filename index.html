@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SILOQ Maritime Safety Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+  #map { height: 420px; }
+</style>
+</head>
+
+<body class="bg-gradient-to-br from-blue-100 to-cyan-100 min-h-screen">
+
+<!-- HEADER -->
+<header class="bg-gradient-to-r from-blue-800 to-cyan-700 text-white p-5 shadow-lg">
+  <h1 class="text-3xl font-bold">🚤 SILOQ Maritime Safety Dashboard</h1>
+  <p class="text-sm text-blue-200">Demo Mode (GitHub Pages)</p>
+</header>
+
+<!-- STATS -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
+  <div class="bg-white p-4 rounded shadow border-l-4 border-blue-600">
+    <p>Total Vessels</p>
+    <p id="total-vessels" class="text-3xl font-bold">0</p>
+  </div>
+  <div class="bg-white p-4 rounded shadow border-l-4 border-green-600">
+    <p>Active</p>
+    <p id="active-vessels" class="text-3xl font-bold">0</p>
+  </div>
+  <div class="bg-white p-4 rounded shadow border-l-4 border-red-600">
+    <p>Emergency Alerts</p>
+    <p id="emergency-alerts" class="text-3xl font-bold">0</p>
+  </div>
+</section>
+
+<!-- MAP -->
+<section class="p-4">
+  <h2 class="text-xl font-bold mb-2">📍 Vessel Locations</h2>
+  <div id="map" class="rounded shadow"></div>
+</section>
+
+<!-- WEATHER -->
+<section class="p-4 grid md:grid-cols-2 gap-4">
+  <div class="bg-white p-4 rounded shadow">
+    <h2 class="font-bold mb-2">🌤 Current Weather</h2>
+    <div id="weather-now"></div>
+  </div>
+  <div class="bg-white p-4 rounded shadow">
+    <canvas id="weatherChart"></canvas>
+  </div>
+</section>
+
+<!-- ALERTS -->
+<section class="p-4">
+  <h2 class="font-bold mb-2">🚨 Alerts</h2>
+  <div id="alerts"></div>
+</section>
+
+<!-- HISTORY -->
+<section class="p-4 bg-white rounded shadow">
+  <h2 class="font-bold mb-2">📊 Vessel History</h2>
+  <canvas id="historyChart"></canvas>
+</section>
+
+<footer class="text-center text-sm text-gray-600 p-4">
+  SILOQ Demo Dashboard • GitHub Pages
+</footer>
+
+<!-- ================= SCRIPT ================= -->
+<script>
+/* ================= MOCK DATA ================= */
+
+const vessels = [
+  {id:1, name:"FV Maria", lat:13.65, lng:124.39, status:"active", battery:78},
+  {id:2, name:"FV Juan", lat:13.70, lng:124.45, status:"sos", battery:15},
+  {id:3, name:"FV Pedro", lat:13.60, lng:124.30, status:"active", battery:55}
+];
+
+const alerts = [
+  {boat:"FV Juan", type:"SOS ACTIVE"},
+];
+
+const weather = {
+  temp: 29,
+  humidity: 78,
+  wind: 22,
+  forecast: [29,30,31,30,29,28,27]
+};
+
+/* ================= STATS ================= */
+
+document.getElementById("total-vessels").textContent = vessels.length;
+document.getElementById("active-vessels").textContent =
+  vessels.filter(v=>v.status==="active").length;
+document.getElementById("emergency-alerts").textContent = alerts.length;
+
+/* ================= MAP ================= */
+
+const map = L.map('map').setView([13.67,124.40], 11);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+vessels.forEach(v => {
+  L.marker([v.lat,v.lng])
+    .addTo(map)
+    .bindPopup(`<b>${v.name}</b><br>Status: ${v.status}<br>Battery: ${v.battery}%`);
+});
+
+/* ================= WEATHER ================= */
+
+document.getElementById("weather-now").innerHTML = `
+<p class="text-2xl font-bold">${weather.temp}°C</p>
+<p>Humidity: ${weather.humidity}%</p>
+<p>Wind: ${weather.wind} km/h</p>
+`;
+
+new Chart(document.getElementById("weatherChart"), {
+  type: 'line',
+  data: {
+    labels: ["Now","+1","+2","+3","+4","+5","+6"],
+    datasets: [{
+      label: "Temperature °C",
+      data: weather.forecast,
+      borderColor: "rgb(37,99,235)",
+      backgroundColor: "rgba(37,99,235,0.2)",
+      fill:true
+    }]
+  }
+});
+
+/* ================= ALERTS ================= */
+
+document.getElementById("alerts").innerHTML =
+alerts.map(a => `
+<div class="bg-red-100 border-l-4 border-red-600 p-3 mb-2 rounded">
+⚠️ ${a.boat} — ${a.type}
+</div>
+`).join("");
+
+/* ================= HISTORY ================= */
+
+new Chart(document.getElementById("historyChart"), {
+  type: 'line',
+  data: {
+    labels:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],
+    datasets:[{
+      label:"Battery %",
+      data:[90,85,80,70,60,55,50],
+      borderColor:"rgb(22,163,74)",
+      backgroundColor:"rgba(22,163,74,0.2)",
+      fill:true
+    }]
+  }
+});
+</script>
+
+</body>
+</html>

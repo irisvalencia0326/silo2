@@ -1,0 +1,2 @@
+// CHANGE THIS TO YOUR RPi IP
+const API_BASE = "http://192.168.1.100:5000";
